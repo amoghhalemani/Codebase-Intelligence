@@ -1,0 +1,9 @@
+networkx>=3.2
+typer>=0.12
+rich>=13.7
+pytest>=8.0
+fastapi>=0.115
+uvicorn[standard]>=0.30
+gitpython>=3.1
+coverage>=7.6
+neo4j>=5.0
