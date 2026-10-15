@@ -73,34 +73,84 @@ python cli.py dead-code "D:\path\to\your-repo"
 
 ---
 
-### Option C: 🌐 Interactive Visual Graph (Zero-Docker)
-Generate a standalone, interactive HTML dependency graph and open it in your browser:
+### Option C: 🌐 Interactive Web Dashboard (Visual Graph & Analysis UI)
+
+You can launch the full interactive web dashboard with graph visualization, search, blast radius analysis, dead code auditing, and smart test selection.
+
+#### ⚡ 1-Click Startup Scripts:
+
+**Windows (PowerShell or Command Prompt):**
 ```powershell
-python cli.py visualize "D:\path\to\your-repo"
+# Index demo_project and open dashboard in browser:
+.\run_dashboard.bat
+
+# Or index and open ANY repository:
+.\run_dashboard.bat "D:\path\to\your-project"
 ```
-- **Features in Browser:** Interactive Cytoscape.js canvas with zoom & pan, live search bar, color-coded node types (Classes, Functions, Modules, Variables), side drawer with code signatures, and a **"Trace Blast Radius"** button.
-- **Zero external dependencies:** Runs completely locally without Docker or Neo4j.
+
+**Linux / macOS:**
+```bash
+# Make executable (first time only):
+chmod +x run_dashboard.sh
+
+# Index demo_project and open dashboard in browser:
+./run_dashboard.sh
+
+# Or index and open ANY repository:
+./run_dashboard.sh /path/to/your-project
+```
+
+#### 🛠️ Manual Step-by-Step Commands:
+```powershell
+# Step 1: Index your target repository
+python cli.py index "demo_project"
+
+# Step 2: Start the interactive dashboard server
+python demo_dashboard/server.py
+```
+> The dashboard will start and automatically open in your default browser at **`http://127.0.0.1:5050`**.
+
+#### 🎯 Features Available in the Web UI:
+- **🔍 Symbol Search & Filter:** Real-time type-ahead search with category filters (**Functions**, **Classes**, **Modules**).
+- **💥 Blast Radius Analysis:** Click any node (or select from search) and run blast radius analysis. Downstream callers highlight in glowing red while non-affected code dims.
+- **🎯 Smart Test Selection:** Highlights only the unit test cases that cover the active function in glowing green.
+- **🧹 Dead Code Audit:** Scans the whole repository and highlights all unreferenced orphan functions in glowing purple with 0 incoming callers.
+- **📋 Inspector Drawer:** Displays code location, function signature, incoming callers, and outgoing dependencies.
 
 ---
 
-### Option D: 🤖 Model Context Protocol (MCP) Server for AI Assistants
-Start the MCP server over standard I/O (`stdio`):
-```powershell
-python mcp_server.py
-# or
-python cli.py mcp
-```
+### Option D: 🤖 Adding MCP Server to AI Coding Agents
 
-#### Connecting to AI Assistants:
+Codebase Intelligence includes a built-in **Model Context Protocol (MCP)** server that exposes deep code graph queries directly to AI assistants.
 
-##### 1. Google Antigravity
-Create or update `.agents/mcp_config.json` in your project root (or globally in `%USERPROFILE%\.gemini\config\mcp_config.json`):
+#### 🧰 Tools Exposed to AI Agents:
+| Tool | Purpose |
+| :--- | :--- |
+| `index_repository` | Indexes/re-indexes a repository and extracts dependency graphs. |
+| `search_symbols` | Finds functions, classes, and variables by name or regex query. |
+| `inspect_symbol` | Gets symbol location, signature, incoming callers, and callees. |
+| `analyze_impact` | Computes downstream blast radius and risk level for proposed code changes. |
+| `find_dependency_path`| Finds the shortest call/dependency chain between two symbols. |
+| `recommend_tests` | Recommends the minimal test suite needed to validate a code change. |
+| `detect_dead_code` | Discovers unused/orphan functions with zero callers across the codebase. |
+
+---
+
+#### 🔌 Agent Configuration Setup:
+
+##### 1. Google Antigravity IDE
+Create or update `.agents/mcp_config.json` in your workspace root (or globally at `%USERPROFILE%\.gemini\config\mcp_config.json`):
 ```json
 {
   "mcpServers": {
     "codebase-intelligence": {
-      "command": "D:\\code\\Golang\\Codebase-Intelligence\\.venv\\Scripts\\python.exe",
-      "args": ["D:\\code\\Golang\\Codebase-Intelligence\\mcp_server.py"]
+      "command": "d:\\code\\Golang\\Codebase-Intelligence\\.venv\\Scripts\\python.exe",
+      "args": [
+        "d:\\code\\Golang\\Codebase-Intelligence\\mcp_server.py"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
     }
   }
 }
@@ -112,20 +162,71 @@ Add to `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/Library/App
 {
   "mcpServers": {
     "codebase-intelligence": {
-      "command": "D:\\code\\Golang\\Codebase-Intelligence\\.venv\\Scripts\\python.exe",
-      "args": ["D:\\code\\Golang\\Codebase-Intelligence\\mcp_server.py"]
+      "command": "d:\\code\\Golang\\Codebase-Intelligence\\.venv\\Scripts\\python.exe",
+      "args": [
+        "d:\\code\\Golang\\Codebase-Intelligence\\mcp_server.py"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
     }
   }
 }
 ```
 
 ##### 3. Cursor
-Open **Cursor Settings** $\rightarrow$ **Features** $\rightarrow$ **MCP** $\rightarrow$ **Add New MCP Server**:
-- **Name:** `codebase-intelligence`
-- **Type:** `command`
-- **Command:** `D:\code\Golang\Codebase-Intelligence\.venv\Scripts\python.exe D:\code\Golang\Codebase-Intelligence\mcp_server.py`
+1. Open **Cursor Settings** $\rightarrow$ **Features** $\rightarrow$ **MCP**.
+2. Click **+ Add New MCP Server**.
+3. Fill in the fields:
+   - **Name:** `codebase-intelligence`
+   - **Type:** `command`
+   - **Command:** `D:\code\Golang\Codebase-Intelligence\.venv\Scripts\python.exe D:\code\Golang\Codebase-Intelligence\mcp_server.py`
 
-*See [**`docs/mcp_setup_guide.md`**](file:///d:/code/Golang/Codebase-Intelligence/docs/mcp_setup_guide.md) for full details and example prompts.*
+##### 4. VS Code (Cline / Roo Code / Continue)
+Add to your extension's MCP settings (e.g. `cline_mcp_settings.json`):
+```json
+{
+  "mcpServers": {
+    "codebase-intelligence": {
+      "command": "d:\\code\\Golang\\Codebase-Intelligence\\.venv\\Scripts\\python.exe",
+      "args": [
+        "d:\\code\\Golang\\Codebase-Intelligence\\mcp_server.py"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}
+```
+
+##### 5. Windsurf
+Add to `~/.codeium/windsurf/mcp_config.json`:
+```json
+{
+  "mcpServers": {
+    "codebase-intelligence": {
+      "command": "d:\\code\\Golang\\Codebase-Intelligence\\.venv\\Scripts\\python.exe",
+      "args": [
+        "d:\\code\\Golang\\Codebase-Intelligence\\mcp_server.py"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}
+```
+
+> **Tip (Windows UTF-8):** Always include `"env": { "PYTHONIOENCODING": "utf-8" }` to prevent Windows cp1252 character map issues during JSON-RPC communication.
+
+---
+
+#### 💬 Example Prompts to Test with Your AI Agent:
+- *"Use `codebase-intelligence` to find all callers of `calculate_vat` in `demo_project`."*
+- *"Analyze the blast radius if I refactor `PaymentProcessor.process_payment` in `demo_project`."*
+- *"Detect any dead code or unreferenced functions in `demo_project`."*
+- *"Recommend test cases that cover changes to `tax_calculator:calculate_vat`."*
 
 ---
 

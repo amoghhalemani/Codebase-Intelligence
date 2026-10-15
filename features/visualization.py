@@ -26,11 +26,22 @@ class GraphVisualizer:
             node_id = sym["id"]
             node_ids.add(node_id)
             kind = sym.get("kind", "symbol")
+
+            # Format clean label instead of raw '<module>'
+            raw_name = sym.get("name") or ""
+            if raw_name == "<module>" or node_id.endswith(":<module>"):
+                file_name = sym.get("file", "").split("/")[-1] if sym.get("file") else ""
+                mod_name = sym.get("module") or node_id.split(":")[0]
+                label = file_name or mod_name.split(".")[-1] or mod_name
+                kind = "module"
+            else:
+                label = raw_name or node_id.split(":")[-1]
+
             nodes.append(
                 {
                     "data": {
                         "id": node_id,
-                        "label": sym.get("name") or node_id.split(":")[-1],
+                        "label": label,
                         "qualified_name": sym.get("qualified_name", sym.get("name", "")),
                         "kind": kind,
                         "file": sym.get("file", ""),
@@ -52,11 +63,12 @@ class GraphVisualizer:
                 if nid not in node_ids:
                     node_ids.add(nid)
                     kind = "module" if nid.endswith(":<module>") else "symbol"
+                    mod_name = nid.split(":")[0].split(".")[-1]
                     nodes.append(
                         {
                             "data": {
                                 "id": nid,
-                                "label": nid.split(":")[-1].replace("<module>", nid.split(":")[0].split(".")[-1]),
+                                "label": mod_name if nid.endswith(":<module>") else nid.split(":")[-1],
                                 "qualified_name": nid,
                                 "kind": kind,
                                 "file": "",
@@ -495,8 +507,11 @@ class GraphVisualizer:
         name: 'cose',
         animate: false,
         nodeDimensionsIncludeLabels: true,
-        idealEdgeLength: 100,
-        nodeOverlap: 20
+        idealEdgeLength: 40,
+        nodeRepulsion: function(node) {{ return 4000; }},
+        edgeElasticity: function(edge) {{ return 100; }},
+        componentSpacing: 35,
+        nodeOverlap: 10
       }}
     }});
 

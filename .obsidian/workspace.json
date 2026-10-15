@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/02_indexer_pipeline_and_ast.md",
+                "file": "major_project_ppt.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "02_indexer_pipeline_and_ast"
+              "title": "major_project_ppt"
             }
           }
         ]
@@ -83,7 +83,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "f1e1755a98a95f5a",
@@ -190,23 +191,24 @@
   },
   "active": "ad09f4da1d18179c",
   "lastOpenFiles": [
+    "run_dashboard.sh",
+    "run_dashboard.bat",
+    "demo_project/deprecated_utils.py",
+    "demo_project/__pycache__/tax_calculator.cpython-313.pyc",
+    "demo_project/__pycache__/payment_service.cpython-313.pyc",
+    "demo_project/__pycache__/order_service.cpython-313.pyc",
+    "demo_project/__pycache__/notification_service.cpython-313.pyc",
+    "demo_project/__pycache__",
+    "demo_project/tests/__pycache__/test_orders.cpython-313-pytest-9.1.1.pyc",
+    "demo_project/tests/__pycache__",
+    "demo_dashboard/__pycache__/server.cpython-313.pyc",
     "docs/llm_mcp_efficiency_report.md",
-    "docs/01_system_architecture.md",
     "docs/02_indexer_pipeline_and_ast.md",
+    "docs/01_system_architecture.md",
     "PROJECT_OVERVIEW.md",
     "README.md",
-    "tests/unit/__pycache__/test_javascript_analyzer.cpython-313-pytest-9.1.1.pyc",
-    "analyzers/javascript/__pycache__/__init__.cpython-313.pyc",
-    "analyzers/javascript/__pycache__/parser.cpython-313.pyc",
-    "analyzers/javascript/__pycache__",
-    "tests/unit/test_javascript_analyzer.py",
-    "analyzers/javascript/parser.py",
-    "analyzers/javascript/__init__.py",
-    "analyzers/javascript",
     "major_project_ppt.md",
-    "codemap.ignore",
     "docs/03_data_persistence_and_storage.md",
-    "__pycache__/mcp_server.cpython-313.pyc",
     "docs/mcp_setup_guide.md",
     "docs/implementation_plan.md",
     "docs/database_schema.md",

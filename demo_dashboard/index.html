@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeMap | Interactive Codebase Intelligence Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(20, 27, 45, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.3);
+      --accent: #6366f1;
+      --danger: #ef4444;
+      --danger-glow: rgba(239, 68, 68, 0.4);
+      --warning: #f59e0b;
+      --success: #10b981;
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header */
+    header {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #fff, #cbd5e1);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-left: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .repo-input-wrap {
+      display: flex;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 2px 4px 2px 12px;
+    }
+
+    .repo-input-wrap span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-right: 6px;
+    }
+
+    .repo-input-wrap input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+      width: 160px;
+    }
+
+    button {
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 7px;
+      border: 1px solid var(--card-border);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      padding: 6px 12px;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Main Container */
+    .main-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 61px);
+      position: relative;
+    }
+
+    /* Sidebar */
+    aside {
+      width: 340px;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    /* Demo Action Buttons */
+    .demo-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-card-btn {
+      width: 100%;
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-card-btn .btn-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-card-btn .btn-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .btn-impact {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+    .btn-impact:hover {
+      background: rgba(239, 68, 68, 0.2);
+      box-shadow: 0 0 15px var(--danger-glow);
+    }
+
+    .btn-deadcode {
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: #d8b4fe;
+    }
+    .btn-deadcode:hover {
+      background: rgba(168, 85, 247, 0.2);
+      box-shadow: 0 0 15px var(--purple-glow);
+    }
+
+    .btn-tests {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+    .btn-tests:hover {
+      background: rgba(16, 185, 129, 0.2);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-reset {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 12px;
+      justify-content: center;
+    }
+    .btn-reset:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    /* Search Box & Controls */
+    .search-box-wrap {
+      position: relative;
+      margin-bottom: 8px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.82rem;
+      padding: 8px 10px 8px 32px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* Filter pills */
+    .filter-pills {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .filter-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-pill:hover, .filter-pill.active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+    }
+
+    /* Search Results Dropdown */
+    .search-results-list {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid var(--card-border);
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+    .search-result-item {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.15s ease;
+    }
+    .search-result-item:hover {
+      background: rgba(56, 189, 248, 0.15);
+    }
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+    .result-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+    .result-sub {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+    .result-badge {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-function { background: rgba(56, 189, 248, 0.18); color: #38bdf8; }
+    .badge-class { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
+    .badge-module { background: rgba(6, 182, 212, 0.18); color: #06b6d4; }
+    .badge-symbol { background: rgba(148, 163, 184, 0.18); color: #94a3b8; }
+
+    /* Target Card */
+    .target-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .target-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .target-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fff;
+      word-break: break-all;
+    }
+    .target-loc {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: monospace;
+      margin-bottom: 10px;
+    }
+
+    /* Analysis Action Buttons */
+    .analysis-btn {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .analysis-btn .btn-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .analysis-btn .btn-tag {
+      font-size: 0.68rem;
+      opacity: 0.8;
+      font-weight: normal;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Graph Canvas */
+    #cy-container {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      background: radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.3) 0%, rgba(11, 15, 25, 0.95) 100%);
+    }
+
+    /* Floating Graph Controls */
+    .canvas-overlay-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 6px;
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .canvas-overlay-controls button {
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: none;
+      color: var(--text);
+    }
+    .canvas-overlay-controls button:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Legend */
+    .legend-overlay {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.75rem;
+      z-index: 10;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* Inspector Panel (Right) */
+    #inspector {
+      width: 360px;
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border-left: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 15;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      overflow-y: auto;
+    }
+
+    #inspector.open {
+      transform: translateX(0);
+    }
+
+    .inspector-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .inspector-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: inline-block;
+    }
+
+    .code-box {
+      background: rgba(10, 15, 25, 0.9);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #38bdf8;
+      overflow-x: auto;
+    }
+
+    .edge-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .edge-list li {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      font-family: monospace;
+      color: #e2e8f0;
+      word-break: break-all;
+    }
+
+    /* Notification Banner */
+    #status-banner {
+      background: rgba(56, 189, 248, 0.15);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+      color: #7dd3fc;
+      font-size: 0.8rem;
+      padding: 8px 16px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      animation: fadeIn 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="logo-badge">🗺️</div>
+      <div>
+        <h1>CodeMap</h1>
+      </div>
+      <span>Interactive Graph & Analysis</span>
+    </div>
+
+    <div class="header-controls">
+      <div class="repo-input-wrap">
+        <span>Repo:</span>
+        <input type="text" id="repoInput" value="demo_project">
+      </div>
+      <button class="btn-secondary" onclick="loadGraph()">🔄 Reload</button>
+    </div>
+  </header>
+
+  <!-- Banner -->
+  <div id="status-banner">
+    <span id="banner-text">Simulating analysis...</span>
+    <button class="btn-secondary" style="padding: 2px 8px; font-size: 0.7rem;" onclick="hideBanner()">Dismiss</button>
+  </div>
+
+  <!-- Workspace -->
+  <div class="main-container">
+
+    <!-- Sidebar Controls -->
+    <aside>
+      <!-- Symbol Search & Options Panel -->
+      <div class="sidebar-section">
+        <div class="section-title">🔍 Search & Explore</div>
+        
+        <div class="search-box-wrap">
+          <span class="search-icon">🔎</span>
+          <input 
+            type="text" 
+            id="symbolSearchInput" 
+            class="search-input" 
+            placeholder="Search function, class, or dependency..." 
+            oninput="handleSearchInput(this.value)"
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="filter-pills">
+          <button class="filter-pill active" onclick="setSearchFilter('all', this)">All</button>
+          <button class="filter-pill" onclick="setSearchFilter('function', this)">Functions</button>
+          <button class="filter-pill" onclick="setSearchFilter('class', this)">Classes</button>
+          <button class="filter-pill" onclick="setSearchFilter('module', this)">Modules</button>
+        </div>
+
+        <!-- Live Search Dropdown -->
+        <div id="searchResultsList" class="search-results-list"></div>
+
+        <!-- Currently Selected Symbol & Options Card -->
+        <div class="target-card">
+          <div class="target-header">
+            <span class="section-title" style="margin: 0; font-size: 0.7rem;">Active Selection</span>
+            <span id="targetKindBadge" class="result-badge badge-function">Function</span>
+          </div>
+          <div id="sidebarSelectedLabel" class="target-title">tax_calculator:calculate_vat</div>
+          <div id="targetLocationLabel" class="target-loc">tax_calculator.py:3-7</div>
+
+          <div style="display: flex; flex-direction: column; gap: 7px;">
+            <button class="analysis-btn btn-impact" onclick="runBlastRadiusForSelected()">
+              <span class="btn-left"><span>💥</span> <span>Blast Radius Analysis</span></span>
+              <span class="btn-tag">Downstream</span>
+            </button>
+            <button class="analysis-btn btn-tests" onclick="runTestSelectionForSelected()">
+              <span class="btn-left"><span>🎯</span> <span>Smart Test Selection</span></span>
+              <span class="btn-tag">Test Suite</span>
+            </button>
+            <button class="btn-secondary" style="width: 100%; justify-content: center; padding: 6px; font-size: 0.78rem;" onclick="focusSelectedNode()">
+              🔎 Focus in Graph
+            </button>
+          </div>
+        </div>
+
+        <!-- Repository-Wide Intelligence Tools -->
+        <div class="section-title" style="margin-top: 14px;">🛠️ Codebase Tools</div>
+        <div style="display: flex; flex-direction: column; gap: 7px;">
+          <button class="analysis-btn btn-deadcode" onclick="runDeadCodeDemo()">
+            <span class="btn-left"><span>🧹</span> <span>Dead Code Audit</span></span>
+            <span class="btn-tag">Orphans</span>
+          </button>
+          <button class="btn-reset" style="width: 100%;" onclick="resetGraphColors(true)">
+            ↺ Reset Visual Highlights
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="sidebar-section">
+        <div class="section-title">📊 Repository Topology</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="statNodes">0</div>
+            <div class="stat-label">Total Nodes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statEdges">0</div>
+            <div class="stat-label">Dependency Edges</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statDead" style="color: #d8b4fe;">0</div>
+            <div class="stat-label">Dead Functions</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statRisk" style="color: #6ee7b7;">Low</div>
+            <div class="stat-label">Change Risk</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div class="sidebar-section">
+        <div class="section-title">💡 How to Demonstrate</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">
+          • Click any node to open the <strong>Inspector Drawer</strong>.<br>
+          • Drag nodes or scroll to zoom.<br>
+          • Click <strong>Blast Radius</strong> to show evaluators how CodeMap prevents outages.<br>
+          • Click <strong>Dead Code</strong> to show how CodeMap cleans legacy code.
+        </div>
+      </div>
+    </aside>
+
+    <!-- Canvas -->
+    <div id="cy-container">
+      <!-- Legend -->
+      <div class="legend-overlay">
+        <div style="font-weight: 700; color: #fff; margin-bottom: 2px;">Legend</div>
+        <div class="legend-item"><div class="legend-color" style="background: #38bdf8;"></div> Function</div>
+        <div class="legend-item"><div class="legend-color" style="background: #f59e0b;"></div> Class</div>
+        <div class="legend-item"><div class="legend-color" style="background: #06b6d4;"></div> Module / File</div>
+        <div class="legend-item"><div class="legend-color" style="background: #ef4444;"></div> Impacted (Blast Radius)</div>
+        <div class="legend-item"><div class="legend-color" style="background: #a855f7;"></div> Dead Code (Orphan)</div>
+        <div class="legend-item"><div class="legend-color" style="background: #10b981;"></div> Recommended Test</div>
+      </div>
+
+      <!-- Controls -->
+      <div class="canvas-overlay-controls">
+        <button onclick="cy.fit(null, 50)" title="Fit to Screen">⛶ Fit</button>
+        <button onclick="cy.zoom(cy.zoom() * 1.25)" title="Zoom In">+</button>
+        <button onclick="cy.zoom(cy.zoom() * 0.8)" title="Zoom Out">-</button>
+        <button onclick="reRunLayout()" title="Re-arrange Nodes">⚡ Physics</button>
+      </div>
+    </div>
+
+    <!-- Right Inspector Drawer -->
+    <div id="inspector">
+      <div class="inspector-header">
+        <div>
+          <span class="tag" id="inspectKind" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">Function</span>
+          <h2 id="inspectName" style="font-size: 1.1rem; margin-top: 6px; word-break: break-all;">Symbol Name</h2>
+        </div>
+        <button class="btn-secondary" style="padding: 4px 8px;" onclick="closeInspector()">✕</button>
+      </div>
+
+      <div class="inspector-body">
+        <!-- Direct actions for the inspected node -->
+        <div style="display: flex; flex-direction: column; gap: 8px; background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+          <button class="action-card-btn btn-impact" onclick="runBlastRadiusForSelected()">
+            <div class="btn-title" id="btnInspectImpactTitle">💥 Blast Radius of This Node</div>
+            <div class="btn-desc">Find all services and callers that break if this function changes</div>
+          </button>
+          <button class="action-card-btn btn-tests" onclick="runTestSelectionForSelected()">
+            <div class="btn-title" id="btnInspectTestsTitle">🎯 Recommend Tests for This Node</div>
+            <div class="btn-desc">Find all test cases that cover this function</div>
+          </button>
+        </div>
+
+        <div>
+          <div class="section-title">File & Line Location</div>
+          <div id="inspectLocation" style="font-size: 0.8rem; font-family: monospace; color: #cbd5e1;">tax_calculator.py:3-7</div>
+        </div>
+
+        <div>
+          <div class="section-title">Signature</div>
+          <div class="code-box" id="inspectSignature">def calculate_vat(...)</div>
+        </div>
+
+        <div>
+          <div class="section-title" id="callersTitle">Incoming Callers (Who Calls This?)</div>
+          <ul class="edge-list" id="inspectCallers">
+            <li>Loading...</li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="section-title" id="calleesTitle">Outgoing Dependencies (What It Calls)</div>
+          <ul class="edge-list" id="inspectDependencies">
+            <li>Loading...</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let cy = null;
+    let currentData = { nodes: [], edges: [] };
+    let currentSelectedSymbolId = 'tax_calculator:calculate_vat';
+    let currentSelectedLabel = 'calculate_vat';
+
+    // Color definitions
+    const COLORS = {
+      function: '#38bdf8',
+      class: '#f59e0b',
+      module: '#06b6d4',
+      symbol: '#94a3b8',
+      impact: '#ef4444',
+      impactTarget: '#f59e0b',
+      dead: '#a855f7',
+      test: '#10b981'
+    };
+
+    async function loadGraph() {
+      const repo = document.getElementById('repoInput').value.trim() || 'demo_project';
+      showBanner(`Loading topology for ${repo}...`);
+
+      try {
+        const res = await fetch(`/api/graph?repo=${encodeURIComponent(repo)}`);
+        const data = await res.json();
+
+        if (data.error) {
+          alert('Error: ' + data.error);
+          return;
+        }
+
+        currentData = data;
+        document.getElementById('statNodes').textContent = data.nodes.length;
+        document.getElementById('statEdges').textContent = data.edges.length;
+
+        renderCytoscape(data.nodes, data.edges);
+        showBanner(`✓ Loaded ${data.nodes.length} nodes and ${data.edges.length} edges from ${repo}`);
+        setTimeout(hideBanner, 3000);
+      } catch (err) {
+        alert('Failed to connect to CodeMap server: ' + err.message);
+      }
+    }
+
+    function renderCytoscape(nodes, edges) {
+      if (cy) {
+        cy.destroy();
+      }
+
+      cy = cytoscape({
+        container: document.getElementById('cy-container'),
+        elements: [...nodes, ...edges],
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'background-color': function(ele) {
+                const kind = ele.data('kind');
+                return COLORS[kind] || COLORS.symbol;
+              },
+              'label': 'data(label)',
+              'color': '#f8fafc',
+              'font-size': '11px',
+              'font-weight': 600,
+              'text-valign': 'bottom',
+              'text-margin-y': '6px',
+              'text-background-color': 'rgba(11, 15, 25, 0.85)',
+              'text-background-opacity': 1,
+              'text-background-padding': '3px',
+              'text-background-shape': 'roundrectangle',
+              'border-width': 1,
+              'border-color': 'rgba(255, 255, 255, 0.2)',
+              'width': function(ele) { return ele.data('kind') === 'class' ? 26 : 18; },
+              'height': function(ele) { return ele.data('kind') === 'class' ? 26 : 18; },
+              'transition-property': 'background-color, border-color, border-width, width, height, opacity',
+              'transition-duration': '0.3s'
+            }
+          },
+          {
+            selector: 'edge',
+            style: {
+              'width': 1.5,
+              'line-color': 'rgba(148, 163, 184, 0.25)',
+              'target-arrow-color': 'rgba(148, 163, 184, 0.35)',
+              'target-arrow-shape': 'triangle',
+              'curve-style': 'bezier',
+              'arrow-scale': 0.8,
+              'transition-property': 'line-color, target-arrow-color, width, opacity',
+              'transition-duration': '0.3s'
+            }
+          },
+          {
+            selector: 'node:selected',
+            style: {
+              'border-color': '#fff',
+              'border-width': 3,
+              'shadow-blur': 15,
+              'shadow-color': '#38bdf8'
+            }
+          },
+          // Highlight Class: Blast Radius Root Target
+          {
+            selector: 'node.impact-root',
+            style: {
+              'background-color': '#f59e0b',
+              'border-color': '#ffffff',
+              'border-width': 4,
+              'width': 34,
+              'height': 34,
+              'font-size': '12px',
+              'font-weight': 'bold',
+              'color': '#fbbf24',
+              'opacity': 1,
+              'z-index': 1000
+            }
+          },
+          // Highlight Class: Impacted Downstream Nodes
+          {
+            selector: 'node.impacted',
+            style: {
+              'background-color': '#ef4444',
+              'border-color': '#fee2e2',
+              'border-width': 3.5,
+              'width': 28,
+              'height': 28,
+              'font-size': '11px',
+              'font-weight': 'bold',
+              'color': '#fca5a5',
+              'opacity': 1,
+              'z-index': 990
+            }
+          },
+          // Highlight Class: Impacted Connecting Edges
+          {
+            selector: 'edge.impacted-edge',
+            style: {
+              'line-color': '#ef4444',
+              'target-arrow-color': '#ef4444',
+              'width': 3.5,
+              'opacity': 1,
+              'z-index': 990
+            }
+          },
+          // Highlight Class: Dead Code (Unreferenced Orphans)
+          {
+            selector: 'node.dead-code',
+            style: {
+              'background-color': '#a855f7',
+              'border-color': '#f3e8ff',
+              'border-width': 3.5,
+              'width': 28,
+              'height': 28,
+              'font-size': '11px',
+              'font-weight': 'bold',
+              'color': '#d8b4fe',
+              'opacity': 1,
+              'z-index': 990
+            }
+          },
+          // Highlight Class: Smart Recommended Tests
+          {
+            selector: 'node.test-selected',
+            style: {
+              'background-color': '#10b981',
+              'border-color': '#d1fae5',
+              'border-width': 4,
+              'width': 32,
+              'height': 32,
+              'font-size': '12px',
+              'font-weight': 'bold',
+              'color': '#6ee7b7',
+              'opacity': 1,
+              'z-index': 990
+            }
+          },
+          // Highlight Class: Connecting Test Edges
+          {
+            selector: 'edge.test-edge',
+            style: {
+              'line-color': '#10b981',
+              'target-arrow-color': '#10b981',
+              'width': 3.5,
+              'opacity': 1,
+              'z-index': 990
+            }
+          },
+          // Dimmed non-relevant elements
+          {
+            selector: 'node.dimmed',
+            style: {
+              'opacity': 0.18
+            }
+          },
+          {
+            selector: 'edge.dimmed',
+            style: {
+              'opacity': 0.05
+            }
+          }
+        ],
+        layout: {
+          name: 'cose',
+          animate: true,
+          randomize: true,
+          componentSpacing: 30,
+          nodeRepulsion: function() { return 4500; },
+          edgeElasticity: function() { return 120; },
+          idealEdgeLength: function() { return 35; }
+        }
+      });
+
+      cy.on('tap', 'node', function(evt) {
+        inspectNode(evt.target);
+      });
+
+      cy.on('tap', function(evt) {
+        if (evt.target === cy) {
+          closeInspector();
+        }
+      });
+    }
+
+    function reRunLayout() {
+      if (cy) {
+        cy.layout({
+          name: 'cose',
+          animate: true,
+          randomize: false,
+          componentSpacing: 30,
+          nodeRepulsion: function() { return 4500; },
+          edgeElasticity: function() { return 120; },
+          idealEdgeLength: function() { return 35; },
+          fit: true
+        }).run();
+      }
+    }
+
+    function clearHighlightClasses() {
+      if (!cy) return;
+      cy.elements().removeClass('impact-root impacted impacted-edge dead-code test-selected test-edge dimmed');
+    }
+
+    function resetGraphColors(showNotice = false) {
+      if (!cy) return;
+      clearHighlightClasses();
+      const riskEl = document.getElementById('statRisk');
+      if (riskEl) {
+        riskEl.textContent = 'Low';
+        riskEl.style.color = '#6ee7b7';
+      }
+      if (showNotice) {
+        showBanner('✓ Graph colors reset to default.');
+        setTimeout(hideBanner, 2000);
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // 1-Click Demo: Blast Radius Analysis for Selected Node
+    // -----------------------------------------------------------------
+    async function runBlastRadiusForSelected() {
+      const repo = document.getElementById('repoInput').value.trim() || 'demo_project';
+      const targetSymbol = currentSelectedSymbolId || 'tax_calculator:calculate_vat';
+      const label = currentSelectedLabel || targetSymbol.split(':').pop();
+
+      showBanner(`💥 Computing Blast Radius for "${label}" (${targetSymbol})...`);
+
+      try {
+        const res = await fetch(`/api/impact?repo=${encodeURIComponent(repo)}&symbol=${encodeURIComponent(targetSymbol)}`);
+        const data = await res.json();
+
+        if (data.error) {
+          alert('Error: ' + data.error);
+          return;
+        }
+
+        clearHighlightClasses();
+
+        // Dim everything first
+        cy.elements().addClass('dimmed');
+
+        const impactedSymbols = new Set(data.impact?.impacted_symbols || []);
+
+        // Root node
+        const rootNode = cy.$id(targetSymbol);
+        if (rootNode.length) {
+          rootNode.removeClass('dimmed').addClass('impact-root');
+        }
+
+        // Highlight impacted nodes
+        let impactedCount = 0;
+        cy.nodes().forEach(node => {
+          if (impactedSymbols.has(node.id()) && node.id() !== targetSymbol) {
+            node.removeClass('dimmed').addClass('impacted');
+            impactedCount++;
+          }
+        });
+
+        // Highlight connecting edges
+        cy.edges().forEach(edge => {
+          const src = edge.source().id();
+          const tgt = edge.target().id();
+          if ((src === targetSymbol || impactedSymbols.has(src)) &&
+              (tgt === targetSymbol || impactedSymbols.has(tgt))) {
+            edge.removeClass('dimmed').addClass('impacted-edge');
+          }
+        });
+
+        // Update risk stat
+        const riskLevel = data.risk?.risk_level ? data.risk.risk_level.toUpperCase() : (impactedCount > 2 ? 'HIGH' : 'MEDIUM');
+        const riskEl = document.getElementById('statRisk');
+        if (riskEl) {
+          riskEl.textContent = riskLevel;
+          riskEl.style.color = (riskLevel === 'HIGH' || riskLevel === 'CRITICAL') ? '#ef4444' : '#f59e0b';
+        }
+
+        showBanner(`🚨 Blast Radius for "${label}": Found ${impactedCount} affected downstream components!`);
+
+        if (rootNode.length) {
+          cy.animate({ center: { eles: rootNode }, zoom: 1.4 }, { duration: 500 });
+        }
+      } catch (err) {
+        alert('Failed to run blast radius analysis: ' + err.message);
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // 1-Click Demo: Dead Code Detection
+    // -----------------------------------------------------------------
+    async function runDeadCodeDemo() {
+      const repo = document.getElementById('repoInput').value.trim() || 'demo_project';
+      showBanner(`🧹 Scanning repository for unreferenced dead code...`);
+
+      try {
+        const res = await fetch(`/api/dead-code?repo=${encodeURIComponent(repo)}`);
+        const data = await res.json();
+
+        if (data.error) {
+          alert('Error: ' + data.error);
+          return;
+        }
+
+        clearHighlightClasses();
+        cy.elements().addClass('dimmed');
+
+        const deadIds = new Set();
+        (data.findings || []).forEach(f => {
+          if (f.evidence && f.evidence.symbol_id) {
+            deadIds.add(f.evidence.symbol_id);
+          }
+        });
+
+        let highlightedCount = 0;
+        cy.nodes().forEach(node => {
+          const nid = node.id();
+          const qname = node.data('qualified_name');
+          if (deadIds.has(nid) || deadIds.has(qname)) {
+            node.removeClass('dimmed').addClass('dead-code');
+            highlightedCount++;
+          }
+        });
+
+        const statDeadEl = document.getElementById('statDead');
+        if (statDeadEl) {
+          statDeadEl.textContent = highlightedCount;
+        }
+
+        showBanner(`🧹 Detected & Highlighted ${highlightedCount} orphan dead code functions (0 incoming callers)!`);
+      } catch (err) {
+        alert('Failed to detect dead code: ' + err.message);
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // 1-Click Demo: Smart Test Selection for Selected Node
+    // -----------------------------------------------------------------
+    async function runTestSelectionForSelected() {
+      const repo = document.getElementById('repoInput').value.trim() || 'demo_project';
+      const targetSymbol = currentSelectedSymbolId || 'tax_calculator:calculate_vat';
+      const label = currentSelectedLabel || targetSymbol.split(':').pop();
+
+      showBanner(`🎯 Finding impacted test cases for "${label}" (${targetSymbol})...`);
+
+      try {
+        const res = await fetch(`/api/tests?repo=${encodeURIComponent(repo)}&symbol=${encodeURIComponent(targetSymbol)}`);
+        const data = await res.json();
+
+        if (data.error) {
+          alert('Error: ' + data.error);
+          return;
+        }
+
+        clearHighlightClasses();
+        cy.elements().addClass('dimmed');
+
+        // Root node
+        const rootNode = cy.$id(targetSymbol);
+        if (rootNode.length) {
+          rootNode.removeClass('dimmed').addClass('impact-root');
+        }
+
+        const recommended = data.recommended_tests || [];
+        const testNames = new Set(recommended.map(t => t.name));
+        const testIds = new Set(recommended.map(t => t.test_id));
+
+        let testCount = 0;
+        cy.nodes().forEach(node => {
+          const nid = node.id();
+          const nlabel = node.data('label');
+          const isTest = testIds.has(nid) || 
+                         testNames.has(nlabel) || 
+                         Array.from(testNames).some(name => nid.endsWith(':' + name));
+
+          if (isTest) {
+            node.removeClass('dimmed').addClass('test-selected');
+            testCount++;
+          }
+        });
+
+        // Also highlight edges between test nodes and impacted symbols
+        cy.edges().forEach(edge => {
+          const srcNode = edge.source();
+          const tgtNode = edge.target();
+          if (srcNode.hasClass('test-selected') || tgtNode.hasClass('test-selected')) {
+            edge.removeClass('dimmed').addClass('test-edge');
+          }
+        });
+
+        if (testCount > 0) {
+          showBanner(`🎯 Smart Test Selection: Highlighted ${testCount} targeted tests covering "${label}"!`);
+        } else {
+          showBanner(`ℹ️ No direct unit tests found covering "${label}". Consider adding test coverage!`);
+        }
+
+        if (rootNode.length) {
+          cy.animate({ center: { eles: rootNode }, zoom: 1.3 }, { duration: 500 });
+        }
+      } catch (err) {
+        alert('Failed to select tests: ' + err.message);
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // Inspector Drawer
+    // -----------------------------------------------------------------
+    function inspectNode(node) {
+      const data = node.data();
+      const inspector = document.getElementById('inspector');
+
+      currentSelectedSymbolId = node.id();
+      currentSelectedLabel = data.label || data.qualified_name || node.id();
+
+      // Update active target labels
+      const sideLabel = document.getElementById('sidebarSelectedLabel');
+      if (sideLabel) {
+        sideLabel.textContent = currentSelectedSymbolId;
+      }
+      const targetLoc = document.getElementById('targetLocationLabel');
+      if (targetLoc) {
+        targetLoc.textContent = (data.file ? data.file : 'unknown') + (data.start_line ? ` : L${data.start_line}-${data.end_line}` : '');
+      }
+      const targetKindBadge = document.getElementById('targetKindBadge');
+      if (targetKindBadge) {
+        const kind = data.kind || 'symbol';
+        targetKindBadge.textContent = kind.charAt(0).toUpperCase() + kind.slice(1);
+        targetKindBadge.className = `result-badge badge-${kind in { function: 1, class: 1, module: 1 } ? kind : 'symbol'}`;
+      }
+      const btnImpact = document.getElementById('btnInspectImpactTitle');
+      if (btnImpact) {
+        btnImpact.textContent = `💥 Blast Radius of ${currentSelectedLabel}`;
+      }
+      const btnTests = document.getElementById('btnInspectTestsTitle');
+      if (btnTests) {
+        btnTests.textContent = `🎯 Recommend Tests for ${currentSelectedLabel}`;
+      }
+
+      document.getElementById('inspectKind').textContent = data.kind || 'symbol';
+      document.getElementById('inspectName').textContent = data.qualified_name || data.label || data.id;
+      document.getElementById('inspectLocation').textContent = (data.file ? data.file : 'unknown') + (data.start_line ? ` : L${data.start_line}-${data.end_line}` : '');
+      document.getElementById('inspectSignature').textContent = data.signature || 'No explicit signature';
+
+      // Find callers (incoming edges)
+      const incoming = node.incomers('edge');
+      const callersList = document.getElementById('inspectCallers');
+      callersList.innerHTML = '';
+      if (incoming.length === 0) {
+        callersList.innerHTML = '<li style="color: #a855f7; font-weight: 600;">⚠️ 0 incoming callers (Uncalled / Dead code candidate)</li>';
+      } else {
+        incoming.forEach(edge => {
+          const li = document.createElement('li');
+          li.textContent = edge.source().data('qualified_name') || edge.source().id();
+          callersList.appendChild(li);
+        });
+      }
+
+      // Find callees (outgoing edges)
+      const outgoing = node.outgoers('edge');
+      const calleesList = document.getElementById('inspectDependencies');
+      calleesList.innerHTML = '';
+      if (outgoing.length === 0) {
+        calleesList.innerHTML = '<li style="color: #94a3b8; font-style: italic;">No outgoing dependencies</li>';
+      } else {
+        outgoing.forEach(edge => {
+          const li = document.createElement('li');
+          li.textContent = edge.target().data('qualified_name') || edge.target().id();
+          calleesList.appendChild(li);
+        });
+      }
+
+      inspector.classList.add('open');
+    }
+
+    // -----------------------------------------------------------------
+    // Search & Filter Implementation
+    // -----------------------------------------------------------------
+    let currentFilterType = 'all';
+
+    function setSearchFilter(type, btn) {
+      currentFilterType = type;
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const input = document.getElementById('symbolSearchInput');
+      handleSearchInput(input ? input.value : '');
+    }
+
+    function handleSearchInput(query) {
+      const container = document.getElementById('searchResultsList');
+      if (!container) return;
+      const q = (query || '').trim().toLowerCase();
+      if (!q) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+        return;
+      }
+
+      const nodes = currentData.nodes || [];
+      const filtered = nodes.filter(n => {
+        const d = n.data || {};
+        const kind = d.kind || 'symbol';
+        if (currentFilterType !== 'all' && kind !== currentFilterType) {
+          return false;
+        }
+        const nameMatch = (d.label || '').toLowerCase().includes(q);
+        const idMatch = (d.id || '').toLowerCase().includes(q);
+        const qnameMatch = (d.qualified_name || '').toLowerCase().includes(q);
+        const fileMatch = (d.file || '').toLowerCase().includes(q);
+        return nameMatch || idMatch || qnameMatch || fileMatch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="padding: 10px; font-size: 0.75rem; color: var(--text-muted); text-align: center;">No matching symbols found</div>';
+        container.style.display = 'flex';
+        return;
+      }
+
+      container.innerHTML = '';
+      filtered.slice(0, 8).forEach(n => {
+        const d = n.data || {};
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+        const kind = d.kind || 'symbol';
+        const badgeClass = `badge-${kind in { function: 1, class: 1, module: 1 } ? kind : 'symbol'}`;
+
+        item.innerHTML = `
+          <div>
+            <div class="result-name">${escapeHtml(d.label || d.id)}</div>
+            <div class="result-sub">${escapeHtml(d.file ? d.file + (d.start_line ? ':' + d.start_line : '') : d.id)}</div>
+          </div>
+          <span class="result-badge ${badgeClass}">${kind}</span>
+        `;
+
+        item.onclick = () => selectSymbolFromSearch(d.id);
+        container.appendChild(item);
+      });
+
+      container.style.display = 'flex';
+    }
+
+    function selectSymbolFromSearch(symbolId) {
+      const container = document.getElementById('searchResultsList');
+      if (container) container.style.display = 'none';
+
+      if (!cy) return;
+      const node = cy.$id(symbolId);
+      if (node.length) {
+        cy.elements().unselect();
+        node.select();
+        inspectNode(node);
+        cy.animate({ center: { eles: node }, zoom: 1.5 }, { duration: 500 });
+      }
+    }
+
+    function focusSelectedNode() {
+      if (!cy) return;
+      const node = cy.$id(currentSelectedSymbolId);
+      if (node.length) {
+        cy.animate({ center: { eles: node }, zoom: 1.5 }, { duration: 500 });
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    document.addEventListener('click', (e) => {
+      const box = document.querySelector('.search-box-wrap');
+      const results = document.getElementById('searchResultsList');
+      if (results && box && !box.contains(e.target) && !results.contains(e.target)) {
+        results.style.display = 'none';
+      }
+    });
+
+    function closeInspector() {
+      document.getElementById('inspector').classList.remove('open');
+    }
+
+    function showBanner(text) {
+      const b = document.getElementById('status-banner');
+      document.getElementById('banner-text').textContent = text;
+      b.style.display = 'flex';
+    }
+
+    function hideBanner() {
+      document.getElementById('status-banner').style.display = 'none';
+    }
+
+    // Auto-load on startup
+    window.addEventListener('DOMContentLoaded', loadGraph);
+  </script>
+</body>
+</html>
