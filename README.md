@@ -1,234 +1,183 @@
-# Codebase Intelligence
+# 🧠 Codebase Intelligence
 
-A Python repository intelligence tool for indexing local repositories, resolving symbols, exploring dependency graphs, and analyzing impact, dead code, and test recommendations.
+**Codebase Intelligence** is a local developer tool and static analysis engine that extracts dependency graphs and intelligence metrics from Python repositories. It enables impact analysis, symbol navigation, test selection, dead code detection, interactive visual graph exploration, and native Model Context Protocol (MCP) server support for AI coding assistants.
 
-This project is designed to help you inspect a codebase with a lightweight static-analysis pipeline and a graph-oriented understanding of references, calls, and dependencies.
+---
 
-## What this project does
+## ⚡ Quick Start & Setup
 
-- Indexes Python repositories from disk
-- Extracts symbols, functions, classes, imports, and references
-- Builds an in-memory and persisted dependency graph
-- Supports symbol search and symbol detail lookup
-- Analyzes change impact across repository code
-- Suggests relevant tests for changed symbols
-- Detects potentially unreferenced symbols and unused imports
-- Supports a repo-scoped SQLite database layout for isolated indexing per repository
+### 1. Prerequisites
+- Python 3.10+ installed
+- Git installed
 
-## Why this exists
+### 2. Environment Setup
 
-The goal is to make repository analysis feel like a local code intelligence layer:
+**Windows (PowerShell):**
+```powershell
+# 1. Create virtual environment
+python -m venv .venv
 
-- understand what code exists
-- see how symbols connect
-- evaluate which code is impacted by a change
-- find likely dead or weakly connected symbols
-- maintain repo-specific indexes without mixing all repos into one database
+# 2. Activate virtual environment
+.venv\Scripts\activate
 
-## Project architecture
-
-The project is organized into a few main components:
-
-- `cli.py` — command-line entrypoint and interactive menu
-- `services/analysis_service.py` — orchestration layer for indexing and queries
-- `core/indexing.py` — repository scanning and indexing logic
-- `core/graph.py` — dependency graph representation and path queries
-- `analyzers/` — static analysis code for Python parsing and symbol extraction
-- `features/` — impact analysis, dead code, navigation, risk, and test selection
-- `storage/` — database persistence
-- `git_analysis/` — git-aware analysis helpers
-
-## Requirements
-
-- Python 3.10+
-- Git installed locally
-- Optional: Neo4j for graph-native query storage
-
-Install dependencies:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
+# 3. Install dependencies
 pip install -r requirements.txt
 ```
 
-## Optional Neo4j setup
-
-This project supports optional Neo4j-backed graph storage. If you want graph-native persistence, set the environment variables before running:
-
+**macOS / Linux:**
 ```bash
-export NEO4J_URI=bolt://localhost:7687
-export NEO4J_USER=neo4j
-export NEO4J_PASSWORD=codeintel123
+# 1. Create virtual environment
+python3 -m venv .venv
+
+# 2. Activate virtual environment
+source .venv/bin/activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
 ```
 
-If Neo4j is not available, the system will fall back gracefully to SQLite-backed graph data.
+---
 
-## Repository layout
+## 🚀 Running the Tool
 
-The project expects a local repository folder for cloned repos.
+### Option A: Interactive CLI Mode (Recommended for Beginners)
+Launch the interactive terminal menu:
+```powershell
+python cli.py interactive --repo-root repository
+```
+From the interactive menu, you can clone GitHub repositories, index local code, search symbols, inspect dependencies, run impact analysis, and detect dead code.
 
-Example:
+---
+
+### Option B: Direct CLI Commands
+
+```powershell
+# 1. Index a repository
+python cli.py index "D:\path\to\your-repo"
+
+# 2. Search for symbols (functions, classes, variables)
+python cli.py find "D:\path\to\your-repo" "calculate_tax"
+
+# 3. Inspect symbol details, callers, and outgoing dependencies
+python cli.py symbol "D:\path\to\your-repo" "billing:calculate_tax"
+
+# 4. Multi-hop blast-radius impact analysis
+python cli.py impact "D:\path\to\your-repo" "billing:calculate_tax"
+
+# 5. Recommend test cases for modified code
+python cli.py tests "D:\path\to\your-repo" "billing:calculate_tax"
+
+# 6. Detect unused / dead code candidates
+python cli.py dead-code "D:\path\to\your-repo"
+```
+
+---
+
+### Option C: 🌐 Interactive Visual Graph (Zero-Docker)
+Generate a standalone, interactive HTML dependency graph and open it in your browser:
+```powershell
+python cli.py visualize "D:\path\to\your-repo"
+```
+- **Features in Browser:** Interactive Cytoscape.js canvas with zoom & pan, live search bar, color-coded node types (Classes, Functions, Modules, Variables), side drawer with code signatures, and a **"Trace Blast Radius"** button.
+- **Zero external dependencies:** Runs completely locally without Docker or Neo4j.
+
+---
+
+### Option D: 🤖 Model Context Protocol (MCP) Server for AI Assistants
+Start the MCP server over standard I/O (`stdio`):
+```powershell
+python mcp_server.py
+# or
+python cli.py mcp
+```
+
+#### Connecting to AI Assistants:
+
+##### 1. Google Antigravity
+Create or update `.agents/mcp_config.json` in your project root (or globally in `%USERPROFILE%\.gemini\config\mcp_config.json`):
+```json
+{
+  "mcpServers": {
+    "codebase-intelligence": {
+      "command": "D:\\code\\Golang\\Codebase-Intelligence\\.venv\\Scripts\\python.exe",
+      "args": ["D:\\code\\Golang\\Codebase-Intelligence\\mcp_server.py"]
+    }
+  }
+}
+```
+
+##### 2. Claude Desktop
+Add to `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+```json
+{
+  "mcpServers": {
+    "codebase-intelligence": {
+      "command": "D:\\code\\Golang\\Codebase-Intelligence\\.venv\\Scripts\\python.exe",
+      "args": ["D:\\code\\Golang\\Codebase-Intelligence\\mcp_server.py"]
+    }
+  }
+}
+```
+
+##### 3. Cursor
+Open **Cursor Settings** $\rightarrow$ **Features** $\rightarrow$ **MCP** $\rightarrow$ **Add New MCP Server**:
+- **Name:** `codebase-intelligence`
+- **Type:** `command`
+- **Command:** `D:\code\Golang\Codebase-Intelligence\.venv\Scripts\python.exe D:\code\Golang\Codebase-Intelligence\mcp_server.py`
+
+*See [**`docs/mcp_setup_guide.md`**](file:///d:/code/Golang/Codebase-Intelligence/docs/mcp_setup_guide.md) for full details and example prompts.*
+
+---
+
+### Option E: REST API Server (FastAPI)
+Run the headless REST API service:
+```powershell
+uvicorn api.routes:router --reload --port 8000
+```
+Interactive Swagger API documentation will be available at `http://127.0.0.1:8000/docs`.
+
+---
+
+## 💾 Where is Data Stored?
+
+Codebase Intelligence uses a **partitioned SQLite storage model**. Each repository receives an isolated database file:
 
 ```text
-codebase-intelligence/
-  repository/
-    Anchor/
-    Vision/
-  .codebase-intelligence/
-    repositories/
-      Anchor/
-        <hash>.db
-      Vision/
-        <hash>.db
+.codebase-intelligence/
+├── index.db                       # Unused default shell
+├── repositories/                  # 📂 Isolated repository database root
+│   └── <repo_name>/
+│       └── <sha256_hash>.db       # 💾 Dedicated SQLite DB (files, symbols, edges, findings)
+└── visualizations/
+    └── <repo_name>_graph.html     # 🌐 Standalone interactive visual graph
 ```
 
-This gives each repo its own database file and avoids mixing repository data together in one global index.
+- Each database contains: `files`, `symbols`, `references_table`, `dependency_edges`, and `findings`.
+- *See [**`docs/database_schema.md`**](file:///d:/code/Golang/Codebase-Intelligence/docs/database_schema.md) for full ER diagrams, DDL, and table specifications.*
 
-## Quick start
+---
 
-### 1) Prepare a repo folder
+## 🧪 Running Tests
 
-```bash
-mkdir -p repository
+Run the full automated test suite:
+```powershell
+# Run with Pytest (15 tests: unit + end-to-end)
+pytest
+
+# Or run the comprehensive E2E test suite standalone:
+python tests/test_end_to_end.py
 ```
+*Generates an execution report in [**`reports/e2e_test_report.md`**](file:///d:/code/Golang/Codebase-Intelligence/reports/e2e_test_report.md).*
 
-### 2) Add or clone a repo
+---
 
-```bash
-python3 cli.py clone https://github.com/owner/repo.git repository/RepoName
-```
+## 📑 In-Depth Documentation
 
-Or if the repo already exists locally:
-
-```bash
-python3 cli.py index repository/RepoName
-```
-
-### 3) Run interactive mode
-
-```bash
-python3 cli.py interactive --repo-root repository
-```
-
-From the menu you can:
-
-1. Add GitHub repo
-2. Index repo
-3. Search symbols
-4. Symbol details
-5. Impact analysis
-6. Dead code
-7. List repos
-8. Exit
-
-## CLI commands
-
-### Index a local repository
-
-```bash
-python3 cli.py index repository/Anchor
-```
-
-### Search symbols
-
-```bash
-python3 cli.py find repository/Anchor "hello"
-```
-
-### Look up symbol details
-
-```bash
-python3 cli.py symbol repository/Anchor "module_name:hello"
-```
-
-### Impact analysis
-
-```bash
-python3 cli.py impact repository/Anchor "hello"
-```
-
-### Dead code analysis
-
-```bash
-python3 cli.py dead-code repository/Anchor
-```
-
-### Run tests recommendation
-
-```bash
-python3 cli.py tests repository/Anchor "hello"
-```
-
-## Example usage workflow
-
-```bash
-cd /Users/reipapa/codebase-intelligence
-python3 cli.py interactive --repo-root repository
-```
-
-Then choose a repo and run:
-
-- index repo
-- search symbol
-- inspect symbol details
-- run impact analysis
-- run dead-code scan
-
-## Notes on dead-code detection
-
-The dead-code feature is heuristic. It identifies "potentially unreferenced symbols" using static analysis and graph edges. This can produce false positives for:
-
-- framework entry points
-- decorators and registries
-- exported API handlers
-- dynamic call patterns
-- server/tool registration
-
-Treat the output as a review list rather than a guaranteed deletion list.
-
-## Testing
-
-Run the project tests with:
-
-```bash
-pytest -q
-```
-
-For CLI-focused validation, the repo includes tests for parser, graph, impact, and dead-code behavior.
-
-## Project status
-
-This project is a working static-analysis prototype for repository intelligence. It is suitable for:
-
-- local repo exploration
-- code impact analysis
-- static graph building
-- repo-by-repo indexing workflows
-
-It is not yet a full production-grade code intelligence platform, but it is structured to grow into one.
-
-## License
-
-This project is provided as-is for local repository intelligence and analysis work.
-
-## Contributing
-
-If you want to extend the project, good next areas are:
-
-- better symbol resolution across imports and inheritance
-- incremental indexing
-- graph-native query improvements
-- richer repo metadata and search UX
-- multi-repo orchestration and batch analysis
-
-## Quick repository summary
-
-```text
-Codebase Intelligence
-- static analysis for Python repos
-- graph-backed dependency tracking
-- impact and test recommendations
-- dead-code heuristics
-- repo-scoped SQLite indexing
-```
+| Document | Topic | Description |
+| :--- | :--- | :--- |
+| [**1. System Architecture**](file:///d:/code/Golang/Codebase-Intelligence/docs/01_system_architecture.md) | Architecture | Layer breakdown (CLI $\rightarrow$ Service $\rightarrow$ Engine $\rightarrow$ AST $\rightarrow$ Storage) and sequence diagrams. |
+| [**2. Python Indexer Pipeline & AST**](file:///d:/code/Golang/Codebase-Intelligence/docs/02_indexer_pipeline_and_ast.md) | Indexer Flow | AST visitors, symbol resolution algorithms, and step-by-step code walkthrough. |
+| [**3. Data Persistence & Storage**](file:///d:/code/Golang/Codebase-Intelligence/docs/03_data_persistence_and_storage.md) | Persistence | SQLite storage architecture and optional Neo4j property graph synchronization. |
+| [**4. Database Schema Reference**](file:///d:/code/Golang/Codebase-Intelligence/docs/database_schema.md) | Database Schema | Complete ER diagram, DDL tables, column types, and SQL query cheat sheet. |
+| [**5. Implementation Plan**](file:///d:/code/Golang/Codebase-Intelligence/docs/implementation_plan.md) | Roadmap | Implementation specifications for Visual Graph Exporter and MCP Server. |
+| [**6. MCP Server Setup Guide**](file:///d:/code/Golang/Codebase-Intelligence/docs/mcp_setup_guide.md) | MCP Integration | Setup instructions and copy-paste JSON configurations for Claude Desktop, Cursor, and Antigravity. |

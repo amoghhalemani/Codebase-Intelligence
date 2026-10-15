@@ -164,5 +164,14 @@ class AnalysisService:
         repository = Path(repo_root).resolve().as_posix()
         return self.dead_code.detect(repository)
 
+    def visualize(self, repo_root: Path, output_path: Optional[Path] = None) -> Path:
+        from features.visualization import GraphVisualizer
+
+        repository = Path(repo_root).resolve().as_posix()
+        repo_name = Path(repo_root).name or "repository"
+        target_path = output_path or (Path(".codebase-intelligence") / "visualizations" / f"{repo_name}_graph.html")
+        visualizer = GraphVisualizer(self.database, repository)
+        return visualizer.render_to_file(target_path)
+
     def close(self) -> None:
         self.database.close()
