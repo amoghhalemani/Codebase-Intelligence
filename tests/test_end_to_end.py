@@ -362,6 +362,167 @@ def test_prepare_invoice():
 
             self.run_use_case("8. Change Risk Scoring", "Risk Assessment", uc_risk_analysis)
 
+            # ---------------------------------------------------------
+            # USE CASE 9: Interactive Visual Graph HTML Generation
+            # ---------------------------------------------------------
+            def uc_visualization():
+                html_path = service.visualize(repo_root)
+                assert html_path.exists()
+                content = html_path.read_text(encoding="utf-8")
+                assert "cytoscape" in content
+                assert "tax:calculate_vat" in content
+                assert "prepare_invoice" in content
+
+                return {
+                    "_summary": f"Generated standalone HTML graph visualization ({len(content)} bytes) with Cytoscape.js",
+                    "html_file": str(html_path),
+                    "file_size_bytes": len(content),
+                }
+
+            self.run_use_case("9. Interactive Visual Graph Generation", "Visualization", uc_visualization)
+
+            # ---------------------------------------------------------
+            # USE CASE 10: MCP Server JSON-RPC Protocol & All 7 Tools
+            # ---------------------------------------------------------
+            def uc_mcp_server():
+                from mcp_server import dispatch_rpc_request, TOOLS
+
+                # 1. Handshake: initialize
+                init_resp = dispatch_rpc_request({"jsonrpc": "2.0", "id": 1, "method": "initialize"})
+                assert init_resp["result"]["serverInfo"]["name"] == "codebase-intelligence"
+
+                # 2. Tool discovery: tools/list
+                list_resp = dispatch_rpc_request({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
+                tools = list_resp["result"]["tools"]
+                assert len(tools) == 7
+                tool_names = {t["name"] for t in tools}
+                assert tool_names == {
+                    "index_repository",
+                    "search_symbols",
+                    "inspect_symbol",
+                    "analyze_impact",
+                    "find_dependency_path",
+                    "recommend_tests",
+                    "detect_dead_code",
+                }
+
+                # 3. Tool call 1: index_repository
+                idx_resp = dispatch_rpc_request({
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "index_repository",
+                        "arguments": {"repository_path": repo_root.as_posix()},
+                    },
+                })
+                assert idx_resp["result"]["isError"] is False
+                assert "symbols_indexed" in idx_resp["result"]["content"][0]["text"]
+
+                # 4. Tool call 2: search_symbols
+                search_resp = dispatch_rpc_request({
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "search_symbols",
+                        "arguments": {
+                            "repository_path": repo_root.as_posix(),
+                            "query": "vat",
+                        },
+                    },
+                })
+                assert search_resp["result"]["isError"] is False
+                search_text = search_resp["result"]["content"][0]["text"]
+                assert "calculate_vat" in search_text
+
+                # 5. Tool call 3: inspect_symbol
+                inspect_resp = dispatch_rpc_request({
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "inspect_symbol",
+                        "arguments": {
+                            "repository_path": repo_root.as_posix(),
+                            "symbol_id": "tax:calculate_vat",
+                        },
+                    },
+                })
+                assert inspect_resp["result"]["isError"] is False
+                assert "billing:prepare_invoice" in inspect_resp["result"]["content"][0]["text"]
+
+                # 6. Tool call 4: analyze_impact
+                impact_resp = dispatch_rpc_request({
+                    "jsonrpc": "2.0",
+                    "id": 6,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "analyze_impact",
+                        "arguments": {
+                            "repository_path": repo_root.as_posix(),
+                            "symbol_id": "tax:calculate_vat",
+                        },
+                    },
+                })
+                assert impact_resp["result"]["isError"] is False
+                impact_text = impact_resp["result"]["content"][0]["text"]
+                assert "prepare_invoice" in impact_text
+
+                # 7. Tool call 5: find_dependency_path
+                path_resp = dispatch_rpc_request({
+                    "jsonrpc": "2.0",
+                    "id": 7,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "find_dependency_path",
+                        "arguments": {
+                            "repository_path": repo_root.as_posix(),
+                            "source_symbol_id": "orders:OrderService.place_order",
+                            "target_symbol_id": "tax:calculate_vat",
+                        },
+                    },
+                })
+                assert path_resp["result"]["isError"] is False
+                assert "shortest_path" in path_resp["result"]["content"][0]["text"]
+
+                # 8. Tool call 6: recommend_tests
+                rec_resp = dispatch_rpc_request({
+                    "jsonrpc": "2.0",
+                    "id": 8,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "recommend_tests",
+                        "arguments": {
+                            "repository_path": repo_root.as_posix(),
+                            "symbol_id": "tax:calculate_vat",
+                        },
+                    },
+                })
+                assert rec_resp["result"]["isError"] is False
+                assert "test_billing.py" in rec_resp["result"]["content"][0]["text"]
+
+                # 9. Tool call 7: detect_dead_code
+                dead_resp = dispatch_rpc_request({
+                    "jsonrpc": "2.0",
+                    "id": 9,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "detect_dead_code",
+                        "arguments": {"repository_path": repo_root.as_posix()},
+                    },
+                })
+                assert dead_resp["result"]["isError"] is False
+                assert "orphaned_dead_function" in dead_resp["result"]["content"][0]["text"]
+
+                return {
+                    "_summary": "Verified MCP handshake (initialize, tools/list) and all 7 tool calls end-to-end",
+                    "registered_tools_count": len(tools),
+                    "tested_tools": list(tool_names),
+                }
+
+            self.run_use_case("10. MCP Server JSON-RPC Protocol & Tools", "MCP Server", uc_mcp_server)
+
         finally:
             service.close()
             self.end_time = time.perf_counter()
@@ -447,7 +608,7 @@ def test_all_queries_and_use_cases_end_to_end(tmp_path: Path):
 
     # Assert 100% pass rate
     assert all(r.status == "PASS" for r in runner.results)
-    assert len(runner.results) == 8
+    assert len(runner.results) == 10
 
 
 # ---------------------------------------------------------------------------

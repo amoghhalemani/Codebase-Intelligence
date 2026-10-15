@@ -120,6 +120,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     dead_code_parser.add_argument("repository", type=Path)
 
+    visualize_parser = subparsers.add_parser(
+        "visualize",
+        help="Generate and open an interactive HTML graph visualization in your browser.",
+    )
+    visualize_parser.add_argument("repository", type=Path, help="Target repository path")
+    visualize_parser.add_argument("--output", type=Path, default=None, help="Output HTML file path")
+    visualize_parser.add_argument("--port", type=int, default=8765, help="Port to serve local web viewer")
+    visualize_parser.add_argument("--no-open", action="store_true", help="Skip serving and opening browser")
+
+    mcp_parser = subparsers.add_parser(
+        "mcp",
+        help="Start the Model Context Protocol (MCP) server over stdio.",
+    )
+
     interactive_parser = subparsers.add_parser(
         "interactive",
         help="Launch the interactive repository CLI.",
@@ -286,6 +300,37 @@ def interactive_cli(repo_root: Path = Path("repository")) -> None:
         service.close()
 
 
+def serve_html(html_path: Path, port: int = 8765) -> None:
+    import http.server
+    import socketserver
+    import webbrowser
+
+    directory = str(html_path.resolve().parent)
+    filename = html_path.name
+
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, directory=directory, **kwargs)
+
+        def log_message(self, format, *args):
+            pass
+
+    for p in range(port, port + 20):
+        try:
+            with socketserver.TCPServer(("127.0.0.1", p), Handler) as httpd:
+                url = f"http://127.0.0.1:{p}/{filename}"
+                print(f"\n[*] Serving interactive graph at: {url}")
+                print("[*] Press Ctrl+C in terminal to stop server.\n")
+                webbrowser.open(url)
+                try:
+                    httpd.serve_forever()
+                except KeyboardInterrupt:
+                    print("\n[*] Server stopped.")
+            return
+        except OSError:
+            continue
+
+
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
@@ -326,6 +371,23 @@ def main() -> None:
         elif args.command == "dead-code":
             service = AnalysisService(repo_database_path(args.repository))
             result = service.detect_dead_code(args.repository)
+        elif args.command == "visualize":
+            service = AnalysisService(repo_database_path(args.repository))
+            html_path = service.visualize(args.repository, args.output)
+            if not args.no_open:
+                service.close()
+                serve_html(html_path, port=args.port)
+                return
+            result = {
+                "repository": str(args.repository),
+                "visualization_file": str(html_path),
+                "status": "ready",
+                "message": "Saved to disk",
+            }
+        elif args.command == "mcp":
+            from mcp_server import run_stdio_server
+            run_stdio_server()
+            return
         elif args.command == "interactive":
             interactive_cli(args.repo_root)
             return
