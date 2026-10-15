@@ -82,6 +82,7 @@ class ParsedFile:
 
 @dataclass
 class TestCase:
+    __test__ = False
     test_id: str
     file: str
     name: str

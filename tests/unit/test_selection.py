@@ -17,6 +17,7 @@ async def test_async_flow():
     )
 
     service = TestSelectionService.__new__(TestSelectionService)
+    service.database = type("DummyDatabase", (), {"all_symbols": lambda self, repo: []})()
     tests = service.discover_tests(tmp_path)
 
     assert {test.name for test in tests} == {

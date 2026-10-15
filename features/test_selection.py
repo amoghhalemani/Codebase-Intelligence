@@ -8,10 +8,12 @@ from storage.database import AnalysisDatabase
 
 
 class TestSelectionService:
+    __test__ = False
+
     def __init__(self, database: AnalysisDatabase):
         self.database = database
 
-    def discover_tests(self, repo_root: Path) -> list[TestCase]:
+    def discover_tests(self, repo_root: Path, repository: str | None = None) -> list[TestCase]:
         tests: list[TestCase] = []
 
         for path in sorted(repo_root.rglob("test_*.py")):
@@ -27,7 +29,7 @@ class TestSelectionService:
                         test_id=f"{relative_path}:{test_name}",
                         file=relative_path,
                         name=test_name,
-                        associated_symbols=self._symbols_in_file(relative_path),
+                        associated_symbols=self._symbols_in_file(relative_path, repository),
                     )
                 )
 
@@ -40,7 +42,7 @@ class TestSelectionService:
         changed_symbols: list[str],
         max_tests: int = 20,
     ) -> dict[str, Any]:
-        tests = self.discover_tests(repo_root)
+        tests = self.discover_tests(repo_root, repository=repository)
         graph = self._load_graph(repository)
         impacted = graph.impacted_nodes(changed_symbols)
         candidate_set = set(changed_symbols) | impacted
@@ -59,6 +61,10 @@ class TestSelectionService:
                 if associated in candidate_set:
                     score += 3.0
                     reasons.append(f"Associated symbol affected: {associated}")
+
+            if test.test_id in candidate_set:
+                score += 4.0
+                reasons.append(f"Test symbol directly impacted in dependency graph")
 
             for changed_symbol in changed_symbols:
                 if self._shares_module(test, changed_symbol):
@@ -90,10 +96,14 @@ class TestSelectionService:
             ],
         }
 
-    def _symbols_in_file(self, file_path: str) -> list[str]:
+    def _symbols_in_file(self, file_path: str, repository: str | None = None) -> list[str]:
+        if not hasattr(self, "database") or self.database is None:
+            return []
+
+        all_syms = self.database.all_symbols(repository) if repository else self.database.all_symbols("current")
         return [
             row["id"]
-            for row in self.database.all_symbols("current")
+            for row in all_syms
             if row["file"] == file_path
         ]
 
