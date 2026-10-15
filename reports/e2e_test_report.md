@@ -1,7 +1,7 @@
 # 🧪 Codebase Intelligence — End-to-End Test Execution Report
 
-**Execution Timestamp:** `2026-10-15 12:38:28 UTC`  
-**Total Suite Duration:** `553.66 ms`  
+**Execution Timestamp:** `2026-10-15 12:54:13 UTC`  
+**Total Suite Duration:** `420.23 ms`  
 **Overall Status:** `✅ ALL PASSED`
 
 ---
@@ -10,7 +10,7 @@
 
 | Total Use Cases | Passed | Failed | Pass Rate | Total Duration |
 | :---: | :---: | :---: | :---: | :---: |
-| **10** | **10** | **0** | **100.0%** | **553.66 ms** |
+| **10** | **10** | **0** | **100.0%** | **420.23 ms** |
 
 ---
 
@@ -18,16 +18,16 @@
 
 | # | Use Case Name | Category | Status | Duration | Summary |
 | :--- | :--- | :--- | :---: | :---: | :--- |
-| 1 | **1. Clean Repository Indexing** | `Indexing` | ✅ PASS | `79.91 ms` | Indexed 5 files, 14 symbols, 23 edges |
-| 2 | **2. Incremental Indexing & Hash Cache** | `Indexing` | ✅ PASS | `85.77 ms` | Zero changes detected on unchanged run; exact modified file detected on edit |
-| 3 | **3. Symbol Search & Detail Navigation** | `Navigation` | ✅ PASS | `2.74 ms` | Found symbol 'tax:calculate_vat' with 2 incoming caller(s) |
-| 4 | **4. Graph Path & Call-Chain Query** | `Graph Traversal` | ✅ PASS | `3.94 ms` | Discovered call chain from 'orders:OrderService.place_order' to 'tax:calculate_vat' (length 3) |
-| 5 | **5. Multi-Hop Impact Analysis** | `Impact Analysis` | ✅ PASS | `1.17 ms` | Calculated blast radius: 7 symbols impacted across 0 path(s) |
-| 6 | **6. Impact-Driven Test Selection** | `Test Selection` | ✅ PASS | `3.31 ms` | Recommended 1 relevant test case(s) for changed symbol |
-| 7 | **7. Dead Code Detection** | `Quality & Hygiene` | ✅ PASS | `8.22 ms` | Detected 4 unreferenced symbol finding(s); successfully flagged orphaned_dead_function |
-| 8 | **8. Change Risk Scoring** | `Risk Assessment` | ✅ PASS | `8.52 ms` | Risk assessment: score 0.177/100, level: low |
-| 9 | **9. Interactive Visual Graph Generation** | `Visualization` | ✅ PASS | `5.26 ms` | Generated standalone HTML graph visualization (24355 bytes) with Cytoscape.js |
-| 10 | **10. MCP Server JSON-RPC Protocol & Tools** | `MCP Server` | ✅ PASS | `146.87 ms` | Verified MCP handshake (initialize, tools/list) and all 7 tool calls end-to-end |
+| 1 | **1. Clean Repository Indexing** | `Indexing` | ✅ PASS | `78.47 ms` | Indexed 5 files, 14 symbols, 23 edges |
+| 2 | **2. Incremental Indexing & Hash Cache** | `Indexing` | ✅ PASS | `74.55 ms` | Zero changes detected on unchanged run; exact modified file detected on edit |
+| 3 | **3. Symbol Search & Detail Navigation** | `Navigation` | ✅ PASS | `2.58 ms` | Found symbol 'tax:calculate_vat' with 2 incoming caller(s) |
+| 4 | **4. Graph Path & Call-Chain Query** | `Graph Traversal` | ✅ PASS | `4.17 ms` | Discovered call chain from 'orders:OrderService.place_order' to 'tax:calculate_vat' (length 3) |
+| 5 | **5. Multi-Hop Impact Analysis** | `Impact Analysis` | ✅ PASS | `1.13 ms` | Calculated blast radius: 7 symbols impacted across 0 path(s) |
+| 6 | **6. Impact-Driven Test Selection** | `Test Selection` | ✅ PASS | `2.7 ms` | Recommended 1 relevant test case(s) for changed symbol |
+| 7 | **7. Dead Code Detection** | `Quality & Hygiene` | ✅ PASS | `6.74 ms` | Detected 4 unreferenced symbol finding(s); successfully flagged orphaned_dead_function |
+| 8 | **8. Change Risk Scoring** | `Risk Assessment` | ✅ PASS | `7.27 ms` | Risk assessment: score 0.177/100, level: low |
+| 9 | **9. Interactive Visual Graph Generation** | `Visualization` | ✅ PASS | `5.39 ms` | Generated standalone HTML graph visualization (24355 bytes) with Cytoscape.js |
+| 10 | **10. MCP Server JSON-RPC Protocol & Tools** | `MCP Server` | ✅ PASS | `141.02 ms` | Verified MCP handshake (initialize, tools/list) and all 7 tool calls end-to-end |
 
 ---
 
@@ -36,7 +36,7 @@
 ### 1. Clean Repository Indexing
 - **Category:** `Indexing`
 - **Status:** `PASS`
-- **Execution Time:** `79.91 ms`
+- **Execution Time:** `78.47 ms`
 - **Summary:** Indexed 5 files, 14 symbols, 23 edges
 
 ```json
@@ -51,7 +51,7 @@
 ### 2. Incremental Indexing & Hash Cache
 - **Category:** `Indexing`
 - **Status:** `PASS`
-- **Execution Time:** `85.77 ms`
+- **Execution Time:** `74.55 ms`
 - **Summary:** Zero changes detected on unchanged run; exact modified file detected on edit
 
 ```json
@@ -66,7 +66,7 @@
 ### 3. Symbol Search & Detail Navigation
 - **Category:** `Navigation`
 - **Status:** `PASS`
-- **Execution Time:** `2.74 ms`
+- **Execution Time:** `2.58 ms`
 - **Summary:** Found symbol 'tax:calculate_vat' with 2 incoming caller(s)
 
 ```json
@@ -84,7 +84,7 @@
 ### 4. Graph Path & Call-Chain Query
 - **Category:** `Graph Traversal`
 - **Status:** `PASS`
-- **Execution Time:** `3.94 ms`
+- **Execution Time:** `4.17 ms`
 - **Summary:** Discovered call chain from 'orders:OrderService.place_order' to 'tax:calculate_vat' (length 3)
 
 ```json
@@ -106,7 +106,7 @@
 ### 5. Multi-Hop Impact Analysis
 - **Category:** `Impact Analysis`
 - **Status:** `PASS`
-- **Execution Time:** `1.17 ms`
+- **Execution Time:** `1.13 ms`
 - **Summary:** Calculated blast radius: 7 symbols impacted across 0 path(s)
 
 ```json
@@ -128,7 +128,7 @@
 ### 6. Impact-Driven Test Selection
 - **Category:** `Test Selection`
 - **Status:** `PASS`
-- **Execution Time:** `3.31 ms`
+- **Execution Time:** `2.7 ms`
 - **Summary:** Recommended 1 relevant test case(s) for changed symbol
 
 ```json
@@ -148,7 +148,7 @@
 ### 7. Dead Code Detection
 - **Category:** `Quality & Hygiene`
 - **Status:** `PASS`
-- **Execution Time:** `8.22 ms`
+- **Execution Time:** `6.74 ms`
 - **Summary:** Detected 4 unreferenced symbol finding(s); successfully flagged orphaned_dead_function
 
 ```json
@@ -166,7 +166,7 @@
 ### 8. Change Risk Scoring
 - **Category:** `Risk Assessment`
 - **Status:** `PASS`
-- **Execution Time:** `8.52 ms`
+- **Execution Time:** `7.27 ms`
 - **Summary:** Risk assessment: score 0.177/100, level: low
 
 ```json
@@ -180,7 +180,7 @@
 ### 9. Interactive Visual Graph Generation
 - **Category:** `Visualization`
 - **Status:** `PASS`
-- **Execution Time:** `5.26 ms`
+- **Execution Time:** `5.39 ms`
 - **Summary:** Generated standalone HTML graph visualization (24355 bytes) with Cytoscape.js
 
 ```json
@@ -193,20 +193,20 @@
 ### 10. MCP Server JSON-RPC Protocol & Tools
 - **Category:** `MCP Server`
 - **Status:** `PASS`
-- **Execution Time:** `146.87 ms`
+- **Execution Time:** `141.02 ms`
 - **Summary:** Verified MCP handshake (initialize, tools/list) and all 7 tool calls end-to-end
 
 ```json
 {
   "registered_tools_count": 7,
   "tested_tools": [
-    "analyze_impact",
     "inspect_symbol",
-    "index_repository",
-    "detect_dead_code",
     "search_symbols",
     "find_dependency_path",
-    "recommend_tests"
+    "index_repository",
+    "recommend_tests",
+    "detect_dead_code",
+    "analyze_impact"
   ]
 }
 ```

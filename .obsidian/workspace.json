@@ -190,6 +190,7 @@
   },
   "active": "ad09f4da1d18179c",
   "lastOpenFiles": [
+    "codemap.ignore",
     "docs/03_data_persistence_and_storage.md",
     "__pycache__/mcp_server.cpython-313.pyc",
     "features/__pycache__/visualization.cpython-313.pyc",

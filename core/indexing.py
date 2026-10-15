@@ -95,9 +95,7 @@ class RepositoryIndexer:
         hashes: dict[str, str] = {}
         analyzers = [PythonAnalyzer()]
 
-        for path in sorted(repo_root.rglob("*")):
-            if not path.is_file() or BaseAnalyzer._is_ignored(path):
-                continue
+        for path in sorted(BaseAnalyzer.iter_files(repo_root)):
             for analyzer in analyzers:
                 if analyzer.supports_file(path):
                     hashes[path.relative_to(repo_root).as_posix()] = RepositoryIndexer._file_hash(path)

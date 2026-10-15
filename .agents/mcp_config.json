@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "codebase-intelligence": {
+      "command": "d:\\code\\Golang\\Codebase-Intelligence\\.venv\\Scripts\\python.exe",
+      "args": [
+        "d:\\code\\Golang\\Codebase-Intelligence\\mcp_server.py"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}

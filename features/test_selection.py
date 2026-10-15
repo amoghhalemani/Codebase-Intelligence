@@ -2,6 +2,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from analyzers.base import BaseAnalyzer
 from core.graph import DependencyGraph
 from core.models import TestCase
 from storage.database import AnalysisDatabase
@@ -16,7 +17,9 @@ class TestSelectionService:
     def discover_tests(self, repo_root: Path, repository: str | None = None) -> list[TestCase]:
         tests: list[TestCase] = []
 
-        for path in sorted(repo_root.rglob("test_*.py")):
+        for path in sorted(BaseAnalyzer.iter_files(repo_root)):
+            if not path.name.startswith("test_") or not path.name.endswith(".py"):
+                continue
             relative_path = path.relative_to(repo_root).as_posix()
             content = path.read_text(encoding="utf-8", errors="replace")
 
