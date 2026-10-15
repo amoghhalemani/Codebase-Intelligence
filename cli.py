@@ -13,7 +13,8 @@ def repo_database_path(repo_root: Path) -> Path:
     repo_root = Path(repo_root).resolve()
     repo_name = re.sub(r"[^A-Za-z0-9._-]+", "_", repo_root.name) or "repository"
     repo_key = hashlib.sha256(str(repo_root).encode("utf-8")).hexdigest()[:12]
-    db_path = Path(".codebase-intelligence") / "repositories" / repo_name / f"{repo_key}.db"
+    project_root = Path(__file__).resolve().parent
+    db_path = project_root / ".codebase-intelligence" / "repositories" / repo_name / f"{repo_key}.db"
     db_path.parent.mkdir(parents=True, exist_ok=True)
     return db_path
 

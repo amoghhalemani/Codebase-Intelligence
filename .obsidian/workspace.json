@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "README.md",
+                "file": "docs/02_indexer_pipeline_and_ast.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README"
+              "title": "02_indexer_pipeline_and_ast"
             }
           }
         ]
@@ -190,24 +190,26 @@
   },
   "active": "ad09f4da1d18179c",
   "lastOpenFiles": [
+    "docs/llm_mcp_efficiency_report.md",
+    "docs/01_system_architecture.md",
+    "docs/02_indexer_pipeline_and_ast.md",
+    "PROJECT_OVERVIEW.md",
+    "README.md",
+    "tests/unit/__pycache__/test_javascript_analyzer.cpython-313-pytest-9.1.1.pyc",
+    "analyzers/javascript/__pycache__/__init__.cpython-313.pyc",
+    "analyzers/javascript/__pycache__/parser.cpython-313.pyc",
+    "analyzers/javascript/__pycache__",
+    "tests/unit/test_javascript_analyzer.py",
+    "analyzers/javascript/parser.py",
+    "analyzers/javascript/__init__.py",
+    "analyzers/javascript",
     "major_project_ppt.md",
     "codemap.ignore",
     "docs/03_data_persistence_and_storage.md",
     "__pycache__/mcp_server.cpython-313.pyc",
-    "features/__pycache__/visualization.cpython-313.pyc",
     "docs/mcp_setup_guide.md",
-    "features/visualization.py",
     "docs/implementation_plan.md",
-    "docs/02_indexer_pipeline_and_ast.md",
-    "docs/01_system_architecture.md",
     "docs/database_schema.md",
-    "api/__init__.py",
-    "api/routes.py",
-    "api",
-    "core/api/__init__.py",
-    "core/api/routes.py",
-    "core/api",
-    "PROJECT_OVERVIEW.md",
     "reports/e2e_test_report.md",
     "docs/README.md"
   ]

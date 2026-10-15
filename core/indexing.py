@@ -2,6 +2,7 @@ import hashlib
 from pathlib import Path
 
 from analyzers.base import BaseAnalyzer
+from analyzers.javascript.parser import JavaScriptAnalyzer
 from analyzers.python.parser import PythonAnalyzer
 from core.graph import DependencyGraph
 from core.models import FileRecord, IndexStatus, ParsedFile
@@ -15,7 +16,7 @@ class RepositoryIndexer:
 
     def __init__(self, database: AnalysisDatabase):
         self.database = database
-        self.analyzers = [PythonAnalyzer()]
+        self.analyzers = [PythonAnalyzer(), JavaScriptAnalyzer()]
         self.graph_store = build_graph_store()
 
     def index_repository(self, repo_root: Path) -> dict[str, object]:
@@ -93,7 +94,7 @@ class RepositoryIndexer:
     @staticmethod
     def _collect_file_hashes(repo_root: Path) -> dict[str, str]:
         hashes: dict[str, str] = {}
-        analyzers = [PythonAnalyzer()]
+        analyzers = [PythonAnalyzer(), JavaScriptAnalyzer()]
 
         for path in sorted(BaseAnalyzer.iter_files(repo_root)):
             for analyzer in analyzers:
