@@ -190,6 +190,7 @@
   },
   "active": "ad09f4da1d18179c",
   "lastOpenFiles": [
+    "major_project_ppt.md",
     "codemap.ignore",
     "docs/03_data_persistence_and_storage.md",
     "__pycache__/mcp_server.cpython-313.pyc",
@@ -207,7 +208,6 @@
     "core/api/routes.py",
     "core/api",
     "PROJECT_OVERVIEW.md",
-    "tests/__pycache__/test_end_to_end.cpython-313-pytest-9.1.1.pyc",
     "reports/e2e_test_report.md",
     "docs/README.md"
   ]
