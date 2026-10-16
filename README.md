@@ -38,7 +38,176 @@ pip install -r requirements.txt
 
 ---
 
-## 🚀 Running the Tool
+## 🐳 Running with Docker (Official Image: `siuumanth/codebase-intelligence:latest`)
+
+You can run both the **Code Indexer** and the **Interactive Web Visualizer** using the pre-built Docker image with zero local setup. No Python, virtual environment, or build tools needed on your host machine.
+
+```text
+       Host Machine                               Docker Container
+  ┌───────────────────────┐                 ┌──────────────────────────┐
+  │ Local Project Folder  │ ── -v mount ──> │ /workspace               │
+  │ (e.g. C:\my-app)      │                 │ (Indexed by cli.py)      │
+  └───────────────────────┘                 └────────────┬─────────────┘
+                                                         │ generates DB
+                                                         ▼
+  ┌───────────────────────┐                 ┌──────────────────────────┐
+  │ Browser (localhost)   │ <── -p 5050 ─── │ Web Visualizer (server)  │
+  │ http://localhost:5050 │                 │ reads .codebase-intel/   │
+  └───────────────────────┘                 └──────────────────────────┘
+```
+
+---
+
+### Option 1: The Instant Demo (Pre-Indexed Sample Project)
+
+The Docker image comes with a pre-indexed sample project (`demo_project`) so you can explore the Visualizer in seconds:
+
+```powershell
+# 1. Run the Visual Dashboard container
+docker run -d -p 5050:5050 --name codebase-dashboard siuumanth/codebase-intelligence:latest
+
+# 2. Open in your browser:
+# 👉 http://localhost:5050
+```
+
+**Features to try in the web UI:**
+- **🔍 Search & Filter:** Type `vat`, `order`, or `payment` in the search box to jump directly to any function or class.
+- **💥 Blast Radius Analysis:** Click any node, then click **"💥 Blast Radius Analysis"** to see all downstream callers light up in glowing red while unrelated code dims.
+- **🎯 Smart Test Selection:** Click **"🎯 Smart Test Selection"** to illuminate the exact unit tests covering that function in green.
+- **🧹 Dead Code Audit:** Click **"🧹 Dead Code Audit"** to illuminate all 11 unreferenced orphan functions across the codebase in glowing purple.
+
+---
+
+### Option 2: Index & Visualize YOUR OWN Codebase
+
+Follow these 3 simple steps to index and visualize any project from your computer:
+
+#### Step 1: Index your local project
+Mount your project folder into `/workspace` inside the container and use a persistent Docker volume (`codebase_data`) to store the generated index database:
+
+**Windows (PowerShell):**
+```powershell
+docker run --rm `
+  -v "D:\path\to\your-project:/workspace" `
+  -v codebase_data:/app/.codebase-intelligence `
+  siuumanth/codebase-intelligence:latest `
+  python cli.py index /workspace
+```
+
+**Windows (Command Prompt / CMD):**
+```cmd
+docker run --rm ^
+  -v "D:\path\to\your-project:/workspace" ^
+  -v codebase_data:/app/.codebase-intelligence ^
+  siuumanth/codebase-intelligence:latest ^
+  python cli.py index /workspace
+```
+
+**macOS / Linux:**
+```bash
+docker run --rm \
+  -v "/path/to/your-project:/workspace" \
+  -v codebase_data:/app/.codebase-intelligence \
+  siuumanth/codebase-intelligence:latest \
+  python cli.py index /workspace
+```
+
+> **What this does:** The indexer parses all Python (and JS/TS) files in your project, builds AST graphs, extracts function/class symbols, and saves the dependency graph to `codebase_data`.
+
+---
+
+#### Step 2: Start the Web Visualizer
+Start the dashboard container sharing the same `codebase_data` volume:
+
+```powershell
+# Stop the previous demo container if running:
+docker rm -f codebase-dashboard
+
+# Start the dashboard with your indexed data:
+docker run -d -p 5050:5050 `
+  -v codebase_data:/app/.codebase-intelligence `
+  --name codebase-dashboard `
+  siuumanth/codebase-intelligence:latest
+```
+*(On Linux/macOS, replace backticks `` ` `` with backslashes `\`)*
+
+---
+
+#### Step 3: View your project in the browser
+1. Open **[http://localhost:5050](http://localhost:5050)** in your browser.
+2. In the top-right header, find the **Repo:** input box.
+3. Type **`/workspace`** and click **🔄 Reload**.
+4. Your project's full interactive dependency graph will render immediately!
+
+---
+
+### Option 3: Interactive Shell Mode (Easiest for Multiple Operations)
+
+If you prefer interactive control, open an interactive bash shell with your project mounted and run commands directly inside:
+
+```powershell
+# Launch interactive container with your folder mounted:
+docker run -it -p 5050:5050 -v "D:\path\to\your-project:/workspace" siuumanth/codebase-intelligence:latest /bin/bash
+```
+
+Inside the container terminal:
+```bash
+# 1. Index your code:
+python cli.py index /workspace
+
+# 2. Search for any function or class:
+python cli.py find /workspace "my_function"
+
+# 3. Compute blast radius in terminal:
+python cli.py impact /workspace "module_name:my_function"
+
+# 4. Detect dead / unreferenced code in terminal:
+python cli.py dead-code /workspace
+
+# 5. Start the web visualizer:
+python demo_dashboard/server.py --no-browser
+```
+Now open **[http://localhost:5050](http://localhost:5050)** in your browser and reload with `/workspace`.
+
+---
+
+### Option 4: 1-Click with Docker Compose
+
+If you use Docker Compose, configure `docker-compose.yml` to mount your local project:
+
+```yaml
+services:
+  dashboard:
+    image: siuumanth/codebase-intelligence:latest
+    container_name: codebase-intelligence-dashboard
+    ports:
+      - "5050:5050"
+    environment:
+      - PORT=5050
+      - HOST=0.0.0.0
+    volumes:
+      - codebase_data:/app/.codebase-intelligence
+      # Mount your local codebase into /workspace:
+      - D:/path/to/your-project:/workspace:ro
+    restart: unless-stopped
+
+volumes:
+  codebase_data:
+```
+
+Then run:
+```powershell
+# 1. Start the visualizer:
+docker compose up -d
+
+# 2. Index your mounted workspace:
+docker compose exec dashboard python cli.py index /workspace
+```
+Visit `http://localhost:5050`, type `/workspace`, and click **🔄 Reload**.
+
+---
+
+## 🚀 Running Locally (Without Docker)
 
 ### Option A: Interactive CLI Mode (Recommended for Beginners)
 Launch the interactive terminal menu:
@@ -213,6 +382,27 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
       "env": {
         "PYTHONIOENCODING": "utf-8"
       }
+    }
+  }
+}
+```
+
+##### 6. Running MCP Server via Docker (Any OS)
+If you prefer running the MCP server inside Docker without installing Python on your host machine:
+```json
+{
+  "mcpServers": {
+    "codebase-intelligence": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e", "PYTHONIOENCODING=utf-8",
+        "-v", "codebase_data:/app/.codebase-intelligence",
+        "siuumanth/codebase-intelligence:latest",
+        "python", "mcp_server.py"
+      ]
     }
   }
 }

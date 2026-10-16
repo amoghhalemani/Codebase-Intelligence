@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: codebase-intelligence:latest
+    image: siuumanth/codebase-intelligence:latest
     container_name: codebase-intelligence-dashboard
     ports:
       - "5050:5050"
@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: codebase-intelligence:latest
+    image: siuumanth/codebase-intelligence:latest
     container_name: codebase-intelligence-api
     command: ["uvicorn", "api.routes:router", "--host", "0.0.0.0", "--port", "8000"]
     ports:

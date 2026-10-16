@@ -55,6 +55,6 @@ Thumbs.db
 .env.local
 
 # Local repository data & cache
-.codebase-intelligence/
-repository/*
-!repository/.gitkeep
+# .codebase-intelligence/
+# repository/*
+# !repository/.gitkeep
