@@ -1,0 +1,36 @@
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: codebase-intelligence:latest
+    container_name: codebase-intelligence-dashboard
+    ports:
+      - "5050:5050"
+    environment:
+      - PORT=5050
+      - HOST=0.0.0.0
+      - PYTHONIOENCODING=utf-8
+    volumes:
+      - codebase_data:/app/.codebase-intelligence
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: codebase-intelligence:latest
+    container_name: codebase-intelligence-api
+    command: ["uvicorn", "api.routes:router", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONIOENCODING=utf-8
+    volumes:
+      - codebase_data:/app/.codebase-intelligence
+    profiles:
+      - with-api
+    restart: unless-stopped
+
+volumes:
+  codebase_data:

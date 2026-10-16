@@ -1,0 +1,14 @@
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.git
+.gitignore
+.obsidian
+.DS_Store
+.agents
+.env
+*.log

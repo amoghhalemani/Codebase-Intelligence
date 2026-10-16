@@ -222,18 +222,23 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
 
-def run_server(port: int = PORT, open_browser: bool = False):
+def run_server(host: str | None = None, port: int = PORT, open_browser: bool = False):
+    import os
+    if host is None:
+        host = os.environ.get("HOST", "0.0.0.0")
+
     if hasattr(sys.stdout, "reconfigure"):
         try:
             sys.stdout.reconfigure(encoding="utf-8")
         except Exception:
             pass
 
-    server = ThreadingHTTPServer(("127.0.0.1", port), DashboardHandler)
-    url = f"http://127.0.0.1:{port}"
+    server = ThreadingHTTPServer((host, port), DashboardHandler)
+    display_host = "localhost" if host in ("0.0.0.0", "127.0.0.1") else host
+    url = f"http://{display_host}:{port}"
     print(f"\n=======================================================")
     print(f"[+] CodeMap Visualizer Dashboard running at:")
-    print(f"    --> {url}")
+    print(f"    --> {url} (listening on {host}:{port})")
     print(f"=======================================================")
     print(f"[*] Serving demo_project with Blast Radius & Dead Code UI")
     print(f"[*] Press Ctrl+C to stop.")
